@@ -1,5 +1,5 @@
 {
-    "type": "esp32-http",
-    "version": "0.1.0",
-    "url": "https://github.com/tomasbrincil/pcb_mapa_cr_1/tree/main/bin/firmware-0-1-0.bin"
+    "type": "esp32-wroom",
+    "version": "2",
+    "url": "https://github.com/tomasbrincil/pcb_mapa_cr_1/tree/main/bin/firmware-2.bin"
 }
