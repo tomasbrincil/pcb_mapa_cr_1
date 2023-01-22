@@ -5,11 +5,11 @@
 #define LEDS_COUNT  77
 #define LEDS_PIN	27
 #define CHANNEL		0
-const char* ssid     = "wifi";
-const char* password = "heslo";
+const char* ssid     = "Internet";
+const char* password = "lopata#*";
 const char* serverName = "http://tmep.cz/vystup-json.php?okresy_cr=1";
 unsigned long lastTime = 0;
-unsigned long timerDelay = 1000;
+unsigned long timerDelay = 60000;
 int lastid, value, color;
 Freenove_ESP32_WS2812 strip = Freenove_ESP32_WS2812(LEDS_COUNT, LEDS_PIN, CHANNEL, TYPE_GRB);
 String sensorReadings;
