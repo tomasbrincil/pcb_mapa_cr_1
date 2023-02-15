@@ -1,16 +1,28 @@
+/*
+  __  __                _______         _ _ __  __
+  |  \/  |              |__   __|       (_|_)  \/  |
+  | \  / | __ _ _ __   __ _| |_   _____  _ _| \  / | __ _ _ __ ___  _   _
+  | |\/| |/ _` | '_ \ / _` | \ \ / / _ \| | | |\/| |/ _` | '_ ` _ \| | | |
+  | |  | | (_| | |_) | (_| | |\ V / (_) | | | |  | | (_| | | | | | | |_| |
+  |_|  |_|\__,_| .__/ \__,_|_| \_/ \___/| |_|_|  |_|\__,_|_| |_| |_|\__, |
+              | |                     _/ |                          __/ |
+              |_|                    |__/                          |___/
+*/
+
 #include <WiFi.h>
 #include <HTTPClient.h>
-#include <Arduino_JSON.h>
+#include <ArduinoJson.h>          //https://github.com/bblanchon/ArduinoJson v6+
 #include "Freenove_WS2812_Lib_for_ESP32.h"
 #define LEDS_COUNT  77
 #define LEDS_PIN	27
 #define CHANNEL		0
+
 const char* ssid     = "Internet";
 const char* password = "lopata#*";
-const char* serverName = "http://tmep.cz/vystup-json.php?okresy_cr=1";
+const char* json_url = "http://cdn.tmep.cz/app/export/okresy-cr-teplota.json";
 unsigned long lastTime = 0;
 unsigned long timerDelay = 60000;
-int lastid, value, color;
+int lastid, value, color, first_time;
 Freenove_ESP32_WS2812 strip = Freenove_ESP32_WS2812(LEDS_COUNT, LEDS_PIN, CHANNEL, TYPE_GRB);
 String sensorReadings;
 float sensorReadingsArr[3];
@@ -37,17 +49,25 @@ void setup()
 }
 void loop()
 {
-  if ((millis() - lastTime) > timerDelay) {
-    if(WiFi.status()== WL_CONNECTED){   
-      sensorReadings = httpGETRequest(serverName);
-      JSONVar myObject = JSON.parse(sensorReadings);
-      if (JSON.typeof(myObject) == "undefined") {
-        Serial.println("Parsing input failed!");
+  // Did we wait long enough or was it just powered on?
+  if ((millis() - lastTime) > timerDelay || first_time == 0) {
+    if(WiFi.status()== WL_CONNECTED){
+      first_time = 1;
+      sensorReadings = httpGETRequest(json_url);
+      DynamicJsonDocument doc(6144);
+      DeserializationError error = deserializeJson(doc, sensorReadings);
+      if (error) {
+        Serial.print(F("deserializeJson() failed: "));
+        Serial.println(error.f_str());
         return;
       }
-      for (int i = 0; i < 77; i++) {
-        color = map(myObject[i]["h1"], -15, 40, 170, 0);           
-        strip.setLedColorData(i, strip.Wheel(color));
+      //int ledIndex = 0;
+      for (JsonObject item : doc.as<JsonArray>()) {
+        int ledIndex = item["id"];
+        ledIndex -= 1;
+        double h = item["h"];
+        color = map(h, -15, 40, 170, 0);
+        strip.setLedColorData(ledIndex, strip.Wheel(color));
       }
       strip.show();
     }
