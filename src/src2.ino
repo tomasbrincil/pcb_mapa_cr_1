@@ -22,8 +22,8 @@
 #define LEDS_PIN 27
 #define CHANNEL 0
 
-//Default values
-char json_url[256] = "http://tmep.cz/vystup-json.php?okresy_cr=1";
+// Default values
+char json_url[256] = "http://cdn.tmep.cz/app/export/okresy-cr-teplota.json";
 char json_led[8] = "27";
 char json_button[8] = "0";
 bool wm_nonblocking = false;
@@ -69,7 +69,6 @@ void setup()
   wm.setMenu(menu);
   wm.setClass("invert");
   //wm.setConfigPortalTimeout(30);
-
 
   bool res = wm.autoConnect("MapaTvojiMamy", "12345678");
   if (!res)
@@ -241,14 +240,12 @@ void loop()
         Serial.println(error.f_str());
         return;
       }
-      //int ledIndex = 0;
       for (JsonObject item : doc.as<JsonArray>()) {
-        const char* id = item["id"];
-        int ledIndex = (int) id;
-        double h1 = item["h1"];
-        color = map(h1, -15, 40, 170, 0);
+        int ledIndex = item["id"];
+        ledIndex -= 1;
+        double h = item["h"];
+        color = map(h, -15, 40, 170, 0);
         strip.setLedColorData(ledIndex, strip.Wheel(color));
-
       }
       strip.show();
     }
